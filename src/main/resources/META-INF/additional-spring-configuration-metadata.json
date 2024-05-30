@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "spring.kafka.consumer.another-topic.value-deserializer",
+  "type": "java.lang.String",
+  "description": "A description for 'spring.kafka.consumer.another-topic.value-deserializer'"
+}]}
