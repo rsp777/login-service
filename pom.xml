@@ -175,11 +175,27 @@
 		</dependencies>
 	</dependencyManagement>
 	<repositories>
-		<repository>
+		<!--<repository>
 			<id>my-repo-id</id>
 			<url>http://localhost:8081/repository/maven-snapshots/</url>
+		</repository>-->
+		<repository>
+			<id>github</id>
+			<name>GitHub OWNER Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/rsp777/todo-common</url>
 		</repository>
 	</repositories>
+	<distributionManagement>
+		<!--<repository>
+			<id>my-repo-id</id>
+			<url>http://localhost:8081/repository/maven-snapshots/</url>
+		</repository>-->
+		<repository>
+			<id>github</id>
+			<name>GitHub OWNER Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/rsp777/register-service</url>
+		</repository>
+	</distributionManagement>
 	<build>
 		<plugins>
 			<plugin>
