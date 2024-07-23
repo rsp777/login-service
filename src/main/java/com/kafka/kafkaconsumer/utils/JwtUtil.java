@@ -47,10 +47,10 @@ public class JwtUtil {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private EntityManagerFactory entityManagerFactory;
 	private String secretKey = "secretKey";
@@ -77,7 +77,8 @@ public class JwtUtil {
 		logger.info("isTokenAlreadyAvailable : {}", isTokenAlreadyAvailable);
 
 		if (!isTokenAlreadyAvailable) {
-			token = createToken(claims, userDto.getUsername());
+			token = createToken(claims, userDto.getFirstName() + " " + userDto.getMiddleName() + " "
+					+ userDto.getLastName() + " " + userDto.getUsername());
 
 			Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 			Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
@@ -103,7 +104,8 @@ public class JwtUtil {
 			if (isTokenExpired) {
 				int count = handleTokenExpiration(refreshTokens);
 				if (count > 0) {
-					token = createToken(claims, userDto.getUsername());
+					token = createToken(claims, userDto.getFirstName() + " " + userDto.getMiddleName() + " "
+							+ userDto.getLastName() + " " + userDto.getUsername());
 					Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 					Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
 					String username = extractClaim(token, claimss -> claimss.getSubject());
@@ -119,7 +121,7 @@ public class JwtUtil {
 					loggerInUser.setLoggedIn(true);
 					userRepository.save(loggerInUser);
 					token = refreshTokens.getToken();
-					logger.info("Token : {}",token);
+					logger.info("Token : {}", token);
 					return token;
 				}
 			}
@@ -133,6 +135,7 @@ public class JwtUtil {
 	}
 
 	private String createToken(Map<String, Object> claims, String subject) {
+		logger.info("Subject : {}", subject);
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + expirationTime * 1000))
 				.signWith(SignatureAlgorithm.HS512, secretKey).compact();
@@ -187,7 +190,12 @@ public class JwtUtil {
 	}
 
 	public String extractUsername(String token) {
-		return extractClaim(token, Claims::getSubject);
+
+		String[] decodedString = extractClaim(token, Claims::getSubject).split(" ");
+		String user_name = "";
+		user_name = decodedString[decodedString.length - 1];
+
+		return user_name;
 	}
 
 	public Date extractExpiration(String token) {
@@ -209,13 +217,13 @@ public class JwtUtil {
 	}
 
 	public void invalidateToken(String token) throws UserNotFoundException {
-		
-		logger.info("token : {}",token);
+
+		logger.info("token : {}", token);
 		Optional<RefreshTokens> refreshTokens = refreshTokensRepository.findBytoken(token);
 		logger.info(refreshTokens.toString());
 		refreshTokensRepository.delete(refreshTokens.get());
 		logger.info("Token is deleted");
-		
+
 	}
 
 	public void signOut(String token) throws UserNotFoundException {
@@ -224,28 +232,28 @@ public class JwtUtil {
 		User user = userService.convertDtoToEntity(userDto);
 		user.setLoggedIn(false);
 		logger.info(user.toString());
-		loggedOut(user);		
+		loggedOut(user);
 	}
-	
+
 	public int loggedOut(User user) {
-		logger.info("Logged Out User : {}",user);
+		logger.info("Logged Out User : {}", user);
 
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		entityManager.getTransaction().begin();
 
 		Boolean newLoggedIn = user.getLoggedIn();
-		logger.info("newLoggedIn : {}",newLoggedIn );
+		logger.info("newLoggedIn : {}", newLoggedIn);
 		Long userId = user.getUser_id();
-		logger.info("userId : {}",userId );
+		logger.info("userId : {}", userId);
 
-		Query updateQuery = entityManager.createNamedQuery("updateLoggedIn")
-				.setParameter("logged_in", newLoggedIn).setParameter("user_id", userId);
+		Query updateQuery = entityManager.createNamedQuery("updateLoggedIn").setParameter("logged_in", newLoggedIn)
+				.setParameter("user_id", userId);
 		int updatedCount = updateQuery.executeUpdate();
 		logger.info("Update query executed, Affected Rows : {}", updatedCount);
 
 		entityManager.getTransaction().commit();
 		entityManager.close();
 		return updatedCount;
-		
+
 	}
 }
