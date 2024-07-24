@@ -8,7 +8,9 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.pawar.todo.dto.PermissionDto;
 
 import jakarta.persistence.Column;
@@ -29,23 +31,27 @@ public class Permission {
 	@Column(nullable = false, unique = true)
 	private String name;
 
-	@JsonIgnore
+//	@JsonIgnore
+	@JsonInclude(value = Include.CUSTOM)
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
 	@JsonProperty("created_dttm")
 	@Column(name = "created_dttm")
 	private LocalDateTime createdDttm;
 
-	@JsonIgnore
+//	@JsonIgnore
+	@JsonInclude(value = Include.CUSTOM)
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-	@JsonProperty("created_dttm")
+	@JsonProperty("last_updated_dttm")
 	@Column(name = "last_updated_dttm")
 	private LocalDateTime lastUpdatedDttm;
 
-	@JsonIgnore
+	@JsonInclude(value = Include.CUSTOM)
+//	@JsonIgnore
 	@Column(name = "created_source")
 	private String createdSource;
 
-	@JsonIgnore
+	@JsonInclude(value = Include.CUSTOM)
+//	@JsonIgnore
 	@Column(name = "last_updated_source")
 	private String lastUpdatedSource;
 

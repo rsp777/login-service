@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.pawar.todo.dto.RoleDto;
 import com.pawar.todo.dto.UserDto;
 
@@ -62,15 +64,18 @@ public class User {
 	@Column(name = "last_name")
 	private String lastName;
 
+	@JsonInclude(value = Include.CUSTOM)
 	@Column(name = "created_at")
 	private Date createdAt;
 
+	@JsonInclude(value = Include.CUSTOM)
 	@Column(name = "updated_at")
 	private Date updatedAt;
 
 	@Column(name = "logged_in", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean loggedIn = false;
 
+	@JsonInclude(value = Include.CUSTOM)
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_roles", // This should be your association table
 			joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))

@@ -10,4 +10,6 @@ import com.kafka.kafkaconsumer.model.Role;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByName(String name);
+
+	void deleteById(Integer roleId);
 }

@@ -1,5 +1,8 @@
 package com.kafka.kafkaconsumer.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -13,14 +16,17 @@ public class UserRolePermissions {
 	
 	@Id
 	@Column(name = "role_id")
+	@JsonInclude(value = Include.CUSTOM)
 	private Integer roleId;
 	
 	@Id
 	@Column(name = "user_id")
+	@JsonInclude(value = Include.CUSTOM)
 	private Long userId;
 
 	@Id
 	@Column(name = "permission_id")
+	@JsonInclude(value = Include.CUSTOM)
 	private Integer permissionId;
 
 	public UserRolePermissions() {

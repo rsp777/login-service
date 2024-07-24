@@ -1,0 +1,1 @@
+package com.kafka.kafkaconsumer.events;
