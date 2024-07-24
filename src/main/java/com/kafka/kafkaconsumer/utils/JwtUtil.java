@@ -78,7 +78,7 @@ public class JwtUtil {
 
 		if (!isTokenAlreadyAvailable) {
 			token = createToken(claims, userDto.getFirstName() + " " + userDto.getMiddleName() + " "
-					+ userDto.getLastName() + " " + userDto.getUsername());
+					+ userDto.getLastName() + " " + userDto.getUsername())+" "+userDto.getRoles();
 
 			Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 			Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
