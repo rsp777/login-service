@@ -46,13 +46,13 @@ public class User {
 	@Column(name = "user_id")
 	private Long id;
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true, nullable = true)
 	private String username;
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true, nullable = true)
 	private String email;
 
-	@Column(name = "password_hash", nullable = false)
+	@Column(name = "password_hash", nullable = true)
 	private String passwordHash;
 
 	@Column(name = "first_name")
@@ -112,7 +112,7 @@ public class User {
 	}
 
 	public User(UserDto userDto) {
-		this.id = userDto.getUserId();
+		this.id = userDto.getUser_id();
 		this.username = userDto.getUsername();
 		this.email = userDto.getEmail();
 		this.passwordHash = userDto.getpasswordHash();

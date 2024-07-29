@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kafka.kafkaconsumer.service.UserService;
 import com.kafka.kafkaconsumer.utils.JwtUtil;
 import com.pawar.todo.dto.JwtResponseDto;
@@ -79,9 +80,15 @@ public class LoginAuthController {
 			DecodedJWT decodedJWT = JWT.decode(token);
 			String decodedSubject = decodedJWT.getSubject();
 			logger.info("Decoded Subject : {}", decodedSubject);
-			String[] decodedString = decodedJWT.getSubject().split(" ");
+	        ObjectMapper om = new ObjectMapper();
+	        
+			String[] decodedString = decodedJWT.getSubject().split("\\|");
 			String user_name = "";
-			user_name = decodedString[decodedString.length - 1];
+			for (int i = 2; i < decodedString.length; i++) {
+				user_name = decodedString[i];
+				logger.info("decodedString["+i+"] : {}",decodedString[i]);
+			}
+//			user_name = decodedString[2];
 			logger.info("Subject : " + user_name);
 			UserDto dto = userService.getUserByName(user_name);
 			logger.info("UserDto : {}", dto.toString());

@@ -453,7 +453,7 @@ public class UserService implements UserDetailsService {
 	@Transactional
 	public UserDto getUserByName(String userName) throws UserNotFoundException {
 		// TODO Auto-generated method stub
-		logger.info("username : "+userName);
+		logger.info("username : {}",userName);
 		User user = userRepository.findByUsername(userName)
 				.orElseThrow(() -> new UserNotFoundException("User not found with username : {} " + userName));
 		UserDto userDto = new UserDto(user.getUser_id(), user.getUsername(), user.getEmail(), user.getPasswordHash(),

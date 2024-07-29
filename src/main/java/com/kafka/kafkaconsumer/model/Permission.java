@@ -34,16 +34,16 @@ public class Permission {
 //	@JsonIgnore
 	@JsonInclude(value = Include.CUSTOM)
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-	@JsonProperty("created_dttm")
+	@JsonProperty("createdDttm")
 	@Column(name = "created_dttm")
-	private LocalDateTime createdDttm;
+	private LocalDateTime created_dttm;
 
 //	@JsonIgnore
 	@JsonInclude(value = Include.CUSTOM)
 	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-	@JsonProperty("last_updated_dttm")
+	@JsonProperty("lastUpdatedDttm")
 	@Column(name = "last_updated_dttm")
-	private LocalDateTime lastUpdatedDttm;
+	private LocalDateTime last_updated_dttm;
 
 	@JsonInclude(value = Include.CUSTOM)
 //	@JsonIgnore
@@ -58,23 +58,23 @@ public class Permission {
 	public Permission() {
 	}
 
-	public Permission(Integer id, String name, LocalDateTime createdDttm, LocalDateTime lastUpdatedDttm,
+	public Permission(Integer id, String name, LocalDateTime created_dttm, LocalDateTime last_updated_dttm,
 			String createdSource, String lastUpdatedSource) {
 		this.id = id;
 		this.name = name;
-		this.createdDttm = createdDttm;
-		this.lastUpdatedDttm = lastUpdatedDttm;
+		this.created_dttm = created_dttm;
+		this.last_updated_dttm = last_updated_dttm;
 		this.createdSource = createdSource;
 		this.lastUpdatedSource = lastUpdatedSource;
 	}
 
-//	public Permission(Long id, String name, LocalDateTime createdDttm,
-//			LocalDateTime lastUpdatedDttm, String createdSource, String lastUpdatedSource) {
+//	public Permission(Long id, String name, LocalDateTime created_dttm,
+//			LocalDateTime last_updated_dttm, String createdSource, String lastUpdatedSource) {
 //		super();
 //		this.id = id;
 //		this.name = name;
-//		this.createdDttm = createdDttm;
-//		this.lastUpdatedDttm = lastUpdatedDttm;
+//		this.created_dttm = created_dttm;
+//		this.last_updated_dttm = last_updated_dttm;
 //		this.createdSource = createdSource;
 //		this.lastUpdatedSource = lastUpdatedSource;
 //	}
@@ -109,19 +109,19 @@ public class Permission {
 	}
 
 	public LocalDateTime getCreatedDttm() {
-		return createdDttm;
+		return created_dttm;
 	}
 
-	public void setCreatedDttm(LocalDateTime createdDttm) {
-		this.createdDttm = createdDttm;
+	public void setCreatedDttm(LocalDateTime created_dttm) {
+		this.created_dttm = created_dttm;
 	}
 
 	public LocalDateTime getLastUpdatedDttm() {
-		return lastUpdatedDttm;
+		return last_updated_dttm;
 	}
 
-	public void setLastUpdatedDttm(LocalDateTime lastUpdatedDttm) {
-		this.lastUpdatedDttm = lastUpdatedDttm;
+	public void setLastUpdatedDttm(LocalDateTime last_updated_dttm) {
+		this.last_updated_dttm = last_updated_dttm;
 	}
 
 	public String getCreatedSource() {
@@ -184,8 +184,8 @@ public class Permission {
 
 	@Override
 	public String toString() {
-		return "Permission [id=" + id + ", name=" + name + ", createdDttm=" + createdDttm + ", lastUpdatedDttm="
-				+ lastUpdatedDttm + ", createdSource=" + createdSource + ", lastUpdatedSource=" + lastUpdatedSource
+		return "Permission [id=" + id + ", name=" + name + ", created_dttm=" + created_dttm + ", last_updated_dttm="
+				+ last_updated_dttm + ", createdSource=" + createdSource + ", lastUpdatedSource=" + lastUpdatedSource
 				+ "]";
 	}
 
