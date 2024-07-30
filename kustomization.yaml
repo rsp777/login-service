@@ -8,4 +8,4 @@ resources:
 configMapGenerator:                        
   - name: login-service-map                        
     literals:                              
-      - KEY=value                          
+      - KEY=value

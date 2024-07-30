@@ -45,8 +45,9 @@
 name: Build and Deploy to Cloud Run
 
 on:
-  push:
-    branches: [ "master" ]
+ workflow_dispatch:
+  #push:
+    #branches: [ "master" ]
 
 env:
   PROJECT_ID: '${{ secrets.GCP_PROJECT_ID }}' # TODO: update Google Cloud project id
