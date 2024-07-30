@@ -10,38 +10,28 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user_roles")
-@IdClass(UserRoleId.class)
-public class UserRole {
-	
+@Table(name = "roles_permissions")
+@IdClass(RolePermissionsId.class)
+public class RolePermissions {
+
 	@Id
 	@Column(name = "role_id")
 	@JsonInclude(value = Include.CUSTOM)
 	private Integer roleId;
-	
+
 	@Id
-	@Column(name = "user_id")
+	@Column(name = "permission_id")
 	@JsonInclude(value = Include.CUSTOM)
-	private Long userId;
+	private Integer permissionId;
 
-	
-
-	public UserRole() {
+	public RolePermissions() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public UserRole(Long userId, Integer roleId) {
+	public RolePermissions(Integer roleId, Integer permissionId) {
 		super();
-		this.userId = userId;
 		this.roleId = roleId;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
+		this.permissionId = permissionId;
 	}
 
 	public Integer getRoleId() {
@@ -52,9 +42,17 @@ public class UserRole {
 		this.roleId = roleId;
 	}
 
+	public Integer getPermissionId() {
+		return permissionId;
+	}
+
+	public void setPermissionId(Integer permissionId) {
+		this.permissionId = permissionId;
+	}
+
 	@Override
 	public String toString() {
-		return "UserRole [userId=" + userId + ", roleId=" + roleId + "]";
+		return "RolePermissions [roleId=" + roleId + ", permissionId=" + permissionId + "]";
 	}
 
 }

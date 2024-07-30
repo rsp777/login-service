@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.hibernate.annotations.DynamicUpdate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.pawar.todo.dto.RoleDto;
 import com.pawar.todo.dto.UserDto;
 
@@ -44,35 +46,36 @@ public class User {
 	@Column(name = "user_id")
 	private Long id;
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true, nullable = true)
 	private String username;
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true, nullable = true)
 	private String email;
 
-	@Column(name = "password_hash", nullable = false)
+	@Column(name = "password_hash", nullable = true)
 	private String passwordHash;
 
+	@Column(name = "first_name")
+	private String firstName;
+
+	@Column(name = "middle_name")
+	private String middleName;
+
+	@Column(name = "last_name")
+	private String lastName;
+
+	@JsonInclude(value = Include.CUSTOM)
 	@Column(name = "created_at")
 	private Date createdAt;
 
+	@JsonInclude(value = Include.CUSTOM)
 	@Column(name = "updated_at")
 	private Date updatedAt;
 
 	@Column(name = "logged_in", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
 	private Boolean loggedIn = false;
-	
-	@Column(name = "is_active", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-	private Boolean isActive = false;
 
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//        name = "roles",
-//        joinColumns = @JoinColumn(name = "user_id"),
-//        inverseJoinColumns = @JoinColumn(name = "role_id")
-//    )
-//    private Set<Role> roles = new HashSet<>();
-
+	@JsonInclude(value = Include.CUSTOM)
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "user_roles", // This should be your association table
 			joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -82,35 +85,52 @@ public class User {
 
 	}
 
-	public User(Long user_id, String username, String email, String passwordHash, Date createdAt, Date updatedAt,
-			Boolean loggedIn, Set<Role> roles) {
-		this.id = user_id;
+	public User(Long id, String username, String email, String passwordHash, String firstName, String middleName,
+			String lastName, Date createdAt, Date updatedAt, Boolean loggedIn, Set<Role> roles) {
+		super();
+		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.passwordHash = passwordHash;
+		this.firstName = firstName;
+		this.middleName = middleName;
+		this.lastName = lastName;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 		this.loggedIn = loggedIn;
 		this.roles = roles;
 	}
 
+	public User(String username, String email, String passwordHash, String firstName, String middleName,
+			String lastName) {
+		this.username = username;
+		this.email = email;
+		this.passwordHash = passwordHash;
+		this.firstName = firstName;
+		this.middleName = middleName;
+		this.lastName = lastName;
+	}
+
 	public User(UserDto userDto) {
-		this.id = userDto.getUserId();
+		this.id = userDto.getUser_id();
 		this.username = userDto.getUsername();
 		this.email = userDto.getEmail();
 		this.passwordHash = userDto.getpasswordHash();
+		this.firstName = userDto.getFirstName();
+		this.middleName = userDto.getMiddleName();
+		this.lastName = userDto.getLastName();
 		this.createdAt = userDto.getCreatedAt();
 		this.updatedAt = userDto.getUpdatedAt();
 		this.loggedIn = userDto.getLoggedIn();
-		this.roles = convertDtoToEntity(userDto.getRoles());		
+		this.roles = convertRolesDtoToEntity(userDto.getRoles());
 	}
 
 	public Long getUser_id() {
 		return id;
 	}
 
-	public void setUser_id(Long user_id) {
-		this.id = user_id;
+	public void setUser_id(Long id) {
+		this.id = id;
 	}
 
 	public String getUsername() {
@@ -169,34 +189,66 @@ public class User {
 		this.roles = roles;
 	}
 
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getMiddleName() {
+		return middleName;
+	}
+
+	public void setMiddleName(String middleName) {
+		this.middleName = middleName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
+	}
+
 	@Override
 	public String toString() {
-		return "User [user_id=" + id + ", username=" + username + ", email=" + email + ", passwordHash="
-				+ passwordHash + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", loggedIn=" + loggedIn
-				+ ", roles=" + roles + "]";
+		return "User [id=" + id + ", username=" + username + ", email=" + email + ", passwordHash="
+				+ passwordHash + ", firstName=" + firstName + ", middleName=" + middleName + ", lastName=" + lastName
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", loggedIn=" + loggedIn + ", userRoles="
+				+ roles + "]";
 	}
-	
-	public Set<Role> convertDtoToEntity(Set<RoleDto> rolesDto){
-		
-		System.out.println("rolesdto : {}"+rolesDto);
-		Set<Role> roles = new HashSet<>();
-	    for (RoleDto roleDto : rolesDto) {
-	        Role role = new Role();
-	        role.setRole_id(roleDto.getRole_id());
-	        role.setName(roleDto.getName());
-	        roles.add(role);
-	    }
-	    return roles;
-	}
-	
-	public Set<RoleDto> convertEntityToDto(Set<Role> roles) {
+
+	public Set<RoleDto> convertRolesEntityToDto(Set<Role> roles) {
 
 		Set<RoleDto> roleDtos = new HashSet<>();
-
+		RoleDto roleDto = new RoleDto();
 		for (Role role : roles) {
-			RoleDto roleDto = new RoleDto(role.getName());
+			roleDto.setRole_id(role.getRole_id());
+			roleDto.setName(role.getName());
+			roleDto.setPermissions(role.convertPermissionEntityToDto(role.getPermissions()));
+			roleDto.setCreatedDttm(role.getCreatedDttm());
+			roleDto.setLastUpdatedDttm(role.getLastUpdatedDttm());
+			roleDto.setCreatedSource(role.getCreatedSource());
+			roleDto.setLastUpdatedSource(role.getLastUpdatedSource());
 			roleDtos.add(roleDto);
 		}
 		return roleDtos;
+
 	}
+
+	public Set<Role> convertRolesDtoToEntity(Set<RoleDto> roleDtos) {
+
+		Set<Role> roles = new HashSet<>();
+
+		for (RoleDto roleDto : roleDtos) {
+			Role role = new Role(roleDto);
+			roles.add(role);
+		}
+		return roles;
+
+	}
+
 }

@@ -1,14 +1,13 @@
 package com.kafka.kafkaconsumer.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kafka.kafkaconsumer.model.Role;
-import com.kafka.kafkaconsumer.model.User;
+import java.io.IOException;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kafka.kafkaconsumer.model.User;
 
 public class MessageDeserializer implements Deserializer<User> {
 	private static final Logger logger = LoggerFactory.getLogger(MessageDeserializer.class);

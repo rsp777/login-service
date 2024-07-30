@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kafka.kafkaconsumer.service.UserService;
 import com.kafka.kafkaconsumer.utils.JwtUtil;
 import com.pawar.todo.dto.JwtResponseDto;
@@ -28,10 +29,9 @@ import com.pawar.todo.dto.UserDto;
 @RestController
 @RequestMapping("/login-service")
 public class LoginAuthController {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(LoginAuthController.class);
 
-	
 	@Autowired
 	private AuthenticationManager authenticationManager;
 
@@ -50,58 +50,67 @@ public class LoginAuthController {
 			// Authenticate the user
 			Authentication authentication = authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPasswordHash()));
-			logger.info("Login Dto : {}",loginDto);
+			logger.info("Authentication Successful : {}", loginDto.getUsername());
 			// If authentication was successful, proceed with generating the JWT token
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			final UserDto userDto = userService.getUserByName(loginDto.getUsername());
+			logger.info("userDto : {}", userDto);
 			final String token = jwtUtil.generateToken(userDto);
 
 			// Return the token in the response
 			return ResponseEntity.ok(new JwtResponseDto(token));
 
 		} catch (Exception e) {
-			   // If authentication fails, return an appropriate response
+			// If authentication fails, return an appropriate response
 			e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed: " + e.getMessage());
 		}
 
 	}
-	
+
 	@CrossOrigin(origins = "*", allowedHeaders = "*")
 	@GetMapping("/signout")
-	public ResponseEntity<?> signOut(@RequestHeader(value="Authorization") String token) {
-	    try {
-	        // Remove the "Bearer " prefix from the token
-	        if (token != null && token.startsWith("Bearer ")) {
-	            token = token.substring(7);
-	            logger.info("token : {}",token);
-	        }
-	        DecodedJWT decodedJWT =  JWT.decode(token);
-	        UserDto dto = userService.getUserByName(decodedJWT.getSubject());
-	        logger.info("UserDto : {}",dto.toString());
+	public ResponseEntity<?> signOut(@RequestHeader(value = "Authorization") String token) {
+		try {
+			// Remove the "Bearer " prefix from the token
+			if (token != null && token.startsWith("Bearer ")) {
+				token = token.substring(7);
+				logger.info("token : {}", token);
+			}
+			DecodedJWT decodedJWT = JWT.decode(token);
+			String decodedSubject = decodedJWT.getSubject();
+			logger.info("Decoded Subject : {}", decodedSubject);
+	        ObjectMapper om = new ObjectMapper();
 	        
-	        if (dto.getLoggedIn().equals(true)) {
-	        	logger.info("Is Logged in : {}",dto.getLoggedIn());
-		        jwtUtil.invalidateToken(token);
-		        jwtUtil.signOut(token);
+			String[] decodedString = decodedJWT.getSubject().split("\\|");
+			String user_name = "";
+			for (int i = 2; i < decodedString.length; i++) {
+				user_name = decodedString[i];
+				logger.info("decodedString["+i+"] : {}",decodedString[i]);
+			}
+//			user_name = decodedString[2];
+			logger.info("Subject : " + user_name);
+			UserDto dto = userService.getUserByName(user_name);
+			logger.info("UserDto : {}", dto.toString());
+
+			if (dto.getLoggedIn().equals(true)) {
+				logger.info("Is Logged in : {}", dto.getLoggedIn());
+				jwtUtil.invalidateToken(token);
+				jwtUtil.signOut(token);
 				logger.info("User has been signed out successfully.");
 
+			} else {
+				logger.info("user is already signed out.");
 			}
-	        else {
-	        	logger.info("user is already signed out.");
-	        }
-	        
-	       
-	        // Return a successful sign-out message
-	        return ResponseEntity.status(HttpStatus.OK).body(null);
 
-	    } catch (Exception e) {
-	        // If sign-out fails, return an appropriate response
-	        e.printStackTrace();
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Sign out failed: " + e.getMessage());
-	    }
+			// Return a successful sign-out message
+			return ResponseEntity.status(HttpStatus.OK).body("Logged out Successfully");
+
+		} catch (Exception e) {
+			// If sign-out fails, return an appropriate response
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Logout failed: " + e.getMessage());
+		}
 	}
-
-	
 
 }

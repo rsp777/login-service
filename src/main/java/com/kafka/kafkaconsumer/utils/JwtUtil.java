@@ -13,11 +13,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kafka.kafkaconsumer.exception.TokenNotFoundException;
 import com.kafka.kafkaconsumer.exception.UserNotFoundException;
 import com.kafka.kafkaconsumer.model.RefreshTokens;
@@ -47,10 +50,10 @@ public class JwtUtil {
 
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private UserService userService;
-	
+
 	@Autowired
 	private EntityManagerFactory entityManagerFactory;
 	private String secretKey = "secretKey";
@@ -59,9 +62,16 @@ public class JwtUtil {
 	private final HttpClient httpClient;
 	private final ObjectMapper objectMapper;
 
+	@Autowired
+	private KafkaTemplate<String, String> userKafkaTemplate;
+
+	private static final String TO_DO_LOGGED_IN_USER = "TO.DO.LOGGED.IN.USER";
+
 	public JwtUtil() {
 		httpClient = HttpClients.createDefault();
 		objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+
 	}
 
 	public String generateToken(UserDto userDto) throws ClientProtocolException, IOException, TokenNotFoundException {
@@ -77,8 +87,11 @@ public class JwtUtil {
 		logger.info("isTokenAlreadyAvailable : {}", isTokenAlreadyAvailable);
 
 		if (!isTokenAlreadyAvailable) {
-			token = createToken(claims, userDto.getUsername());
-
+			User user = new User(userDto);
+			String name = user.getFirstName() + " " + user.getMiddleName() + " "
+					+ user.getLastName();
+			String data = name + "|" +user.getRoles() + "|" + user.getUsername();
+			token = createToken(claims,data);
 			Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 			Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
 			String username = extractClaim(token, claimss -> claimss.getSubject());
@@ -93,6 +106,7 @@ public class JwtUtil {
 			refreshTokensRepository.save(refreshTokens);
 			loggerInUser.setLoggedIn(true);
 			userRepository.save(loggerInUser);
+			publishLoggedInUser(loggerInUser, TO_DO_LOGGED_IN_USER);
 
 		} else {
 
@@ -103,10 +117,14 @@ public class JwtUtil {
 			if (isTokenExpired) {
 				int count = handleTokenExpiration(refreshTokens);
 				if (count > 0) {
-					token = createToken(claims, userDto.getUsername());
+					User user = new User(userDto);
+					String name = user.getFirstName() + " " + user.getMiddleName() + " "
+							+ user.getLastName();
+					String data = name + "|" +user.getRoles() + "|" + user.getUsername();
+					token = createToken(claims,data);
 					Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 					Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
-					String username = extractClaim(token, claimss -> claimss.getSubject());
+//					String username = extractClaim(token, claimss -> claimss.getSubject());
 					refreshTokens.setToken(token);
 					refreshTokens.setCreatedAt(dateofIssue);
 					refreshTokens.setExpires(dateOfExpiration);
@@ -118,11 +136,13 @@ public class JwtUtil {
 					refreshTokensRepository.save(refreshTokens);
 					loggerInUser.setLoggedIn(true);
 					userRepository.save(loggerInUser);
+					publishLoggedInUser(loggerInUser, TO_DO_LOGGED_IN_USER);
 					token = refreshTokens.getToken();
-					logger.info("Token : {}",token);
+					logger.info("Token : {}", token);
 					return token;
 				}
 			}
+			publishLoggedInUser(loggerInUser, TO_DO_LOGGED_IN_USER);
 			token = refreshTokens.getToken();
 			return token;
 		}
@@ -132,7 +152,17 @@ public class JwtUtil {
 		return token;
 	}
 
+	public void publishLoggedInUser(User user, String topicName) throws JsonProcessingException {
+		logger.info("Updated User : {} ", user);
+		logger.info("Topic Name : {} ", topicName);
+		String user_json = objectMapper.writeValueAsString(user);
+		userKafkaTemplate.send(topicName, user_json);
+		logger.info("User Logged In message published to Topic : {}", topicName);
+
+	}
+
 	private String createToken(Map<String, Object> claims, String subject) {
+		logger.info("Subject : {}", subject);
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
 				.setExpiration(new Date(System.currentTimeMillis() + expirationTime * 1000))
 				.signWith(SignatureAlgorithm.HS512, secretKey).compact();
@@ -187,7 +217,12 @@ public class JwtUtil {
 	}
 
 	public String extractUsername(String token) {
-		return extractClaim(token, Claims::getSubject);
+
+		String[] decodedString = extractClaim(token, Claims::getSubject).split("\\|");
+		String user_name = "";
+		user_name = decodedString[decodedString.length - 1];
+
+		return user_name;
 	}
 
 	public Date extractExpiration(String token) {
@@ -209,43 +244,44 @@ public class JwtUtil {
 	}
 
 	public void invalidateToken(String token) throws UserNotFoundException {
-		
-		logger.info("token : {}",token);
+
+		logger.info("token : {}", token);
 		Optional<RefreshTokens> refreshTokens = refreshTokensRepository.findBytoken(token);
 		logger.info(refreshTokens.toString());
 		refreshTokensRepository.delete(refreshTokens.get());
 		logger.info("Token is deleted");
-		
+
 	}
 
-	public void signOut(String token) throws UserNotFoundException {
+	public void signOut(String token) throws UserNotFoundException, JsonProcessingException {
 		String username = extractUsername(token);
 		UserDto userDto = userService.getUserByName(username);
 		User user = userService.convertDtoToEntity(userDto);
 		user.setLoggedIn(false);
 		logger.info(user.toString());
-		loggedOut(user);		
+		loggedOut(user);
 	}
-	
-	public int loggedOut(User user) {
-		logger.info("Logged Out User : {}",user);
+
+	public int loggedOut(User user) throws JsonProcessingException {
+		logger.info("Logged Out User : {}", user);
 
 		EntityManager entityManager = entityManagerFactory.createEntityManager();
 		entityManager.getTransaction().begin();
 
 		Boolean newLoggedIn = user.getLoggedIn();
-		logger.info("newLoggedIn : {}",newLoggedIn );
+		logger.info("newLoggedIn : {}", newLoggedIn);
 		Long userId = user.getUser_id();
-		logger.info("userId : {}",userId );
+		logger.info("userId : {}", userId);
 
-		Query updateQuery = entityManager.createNamedQuery("updateLoggedIn")
-				.setParameter("logged_in", newLoggedIn).setParameter("user_id", userId);
+		Query updateQuery = entityManager.createNamedQuery("updateLoggedIn").setParameter("logged_in", newLoggedIn)
+				.setParameter("user_id", userId);
 		int updatedCount = updateQuery.executeUpdate();
 		logger.info("Update query executed, Affected Rows : {}", updatedCount);
 
 		entityManager.getTransaction().commit();
 		entityManager.close();
+		publishLoggedInUser(user, TO_DO_LOGGED_IN_USER);
 		return updatedCount;
-		
+
 	}
 }
