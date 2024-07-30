@@ -15,7 +15,7 @@ name: Build and Deploy to GKE
 on:
   workflow_dispatch:
   push:
-    branches: [ "feature-regsisteration/login-service" ]
+    branches: [ "master" ]
 
 env:
   PROJECT_ID: '${{ secrets.GCP_PROJECT_ID }}'
