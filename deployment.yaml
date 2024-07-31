@@ -1,1 +1,22 @@
-
+apiVersion: apps/v1                
+kind: Deployment                   
+metadata:                          
+  name: login-service                      
+spec:                              
+  selector:                        
+    matchLabels:                   
+      app: login-service                   
+  template:                        
+    metadata:                      
+      labels:                      
+        app: login-service                 
+    spec:                          
+      containers:                  
+        - name: login-service              
+          image: us-central1-docker.pkg.dev/psyched-freedom-427313-r9/login-service/login-service             
+          resources:               
+            limits:                
+              memory: "128Mi"      
+              cpu: "500m"          
+          ports:                   
+            - containerPort: 8083
