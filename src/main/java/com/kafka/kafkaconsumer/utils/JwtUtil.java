@@ -91,6 +91,7 @@ public class JwtUtil {
 			String name = user.getFirstName() + " " + user.getMiddleName() + " "
 					+ user.getLastName();
 			String data = name + "|" +user.getRoles() + "|" + user.getUsername();
+			logger.info("User data for jwt token : {}",data);
 			token = createToken(claims,data);
 			Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 			Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
