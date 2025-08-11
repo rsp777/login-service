@@ -10,13 +10,13 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.pawar.todo</groupId>
-	<artifactId>login</artifactId>
+	<artifactId>login-service</artifactId>
 	<version>Dev_v2.1</version>
 	<name>login-service</name>
 	<description>login-service</description>
 <!--<url>https://github.com/spring-cloud/spring-cloud-gcp/tree/main/spring-cloud-gcp-starters/spring-cloud-gcp-starter-sql-mysql</url>
 	--><properties>
-		<java.version>20</java.version>
+		<java.version>17</java.version>
 		<spring-cloud.version>2022.0.3</spring-cloud.version>
 	</properties>
 	<dependencies>
