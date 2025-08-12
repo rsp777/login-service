@@ -1,5 +1,6 @@
-*.log*
-*.jar
+.log*
+.jar
+.properties
 .project
 .settings
 .classpath

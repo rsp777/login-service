@@ -31,7 +31,7 @@
 		<appender-ref ref="FILE" />
 	</root>
 	
-	<logger name="org.springframework" level="OFF" />
+	<logger name="org.springframework" level="ON" />
 
 	<logger name="org.apache" level="ON" />
 	<logger name="kafka" level="OFF" />
