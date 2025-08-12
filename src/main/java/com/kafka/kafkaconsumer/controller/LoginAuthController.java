@@ -27,7 +27,7 @@ import com.pawar.todo.dto.LoginDto;
 import com.pawar.todo.dto.UserDto;
 
 @RestController
-@RequestMapping("/login-service")
+@RequestMapping("/")
 public class LoginAuthController {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginAuthController.class);
