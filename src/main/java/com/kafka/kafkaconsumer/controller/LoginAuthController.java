@@ -78,6 +78,7 @@ public class LoginAuthController {
 				logger.info("token : {}", token);
 			}
 			DecodedJWT decodedJWT = JWT.decode(token);
+			logger.info("decodedJWT payload : {}",decodedJWT.toString());
 			String decodedSubject = decodedJWT.getSubject();
 			logger.info("Decoded Subject : {}", decodedSubject);
 	        ObjectMapper om = new ObjectMapper();
