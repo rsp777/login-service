@@ -10,8 +10,8 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.pawar.todo</groupId>
-	<artifactId>login</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>login-service</artifactId>
+	<version>Dev_v2.1</version>
 	<name>login-service</name>
 	<description>login-service</description>
 <!--<url>https://github.com/spring-cloud/spring-cloud-gcp/tree/main/spring-cloud-gcp-starters/spring-cloud-gcp-starter-sql-mysql</url>
@@ -21,12 +21,12 @@
 	</properties>
 	<dependencies>
 
-		<!-- https://mvnrepository.com/artifact/com.netflix.eureka/eureka-client -->
+		<!-- https://mvnrepository.com/artifact/com.netflix.eureka/eureka-client
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
-
+ -->
 		<dependency>
 			<groupId>com.pawar.todo</groupId>
 			<artifactId>common</artifactId>
@@ -165,7 +165,7 @@
 			<artifactId>java-jwt</artifactId>
 			<version>4.2.1</version>
 		</dependency>
-		<dependency>
+			<!--<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-bootstrap</artifactId>
 		</dependency>
@@ -173,7 +173,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
-		<!--<dependency>
+	<dependency>
 			<groupId>com.google.cloud</groupId>
 			<artifactId>spring-cloud-gcp-starter-sql-mysql</artifactId>
 		</dependency>-->
@@ -215,7 +215,7 @@
 		<repository>
 			<id>github</id>
 			<name>GitHub OWNER Apache Maven Packages</name>
-			<url>https://maven.pkg.github.com/rsp777/register-service</url>
+			<url>https://maven.pkg.github.com/rsp777/login-service</url>
 		</repository>
 	</distributionManagement>
 	<build>

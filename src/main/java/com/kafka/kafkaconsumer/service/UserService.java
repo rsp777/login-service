@@ -42,7 +42,7 @@ public class UserService implements UserDetailsService {
 
 	@Autowired
 	private RoleRepository roleRepository;
-	
+
 	@Autowired
 	private PermissionRepository permissionRepository;
 
@@ -60,15 +60,14 @@ public class UserService implements UserDetailsService {
 	private static final String ASSIGN_USER_ROLE_TOPIC = "TO.DO.ASSIGN.USER.ROLE";
 	private static final String UNASSIGN_USER_ROLE_TOPIC = "TO.DO.UNASSIGN.USER.ROLE";
 
-
 	private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 	private final ObjectMapper mapper;
 
-	
 	public UserService() {
 		mapper = new ObjectMapper();
-		mapper.registerModule(new JavaTimeModule());	}
-	
+		mapper.registerModule(new JavaTimeModule());
+	}
+
 	@KafkaListener(topics = NEW_USER_TOPIC)
 	public void userListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -86,14 +85,14 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",NEW_USER_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", NEW_USER_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
+
 	@KafkaListener(topics = UPDATED_USER_TOPIC)
 	public void updateUserListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 		try {
@@ -101,7 +100,7 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			
+
 			User user = mapper.readValue(value, User.class);
 			logger.info("Consumed message : " + value + " with key : " + key + " from partition : " + partition);
 			logger.info("User : {}", user);
@@ -110,17 +109,16 @@ public class UserService implements UserDetailsService {
 				logger.info("User Updated to Login database: {}", value);
 
 				ack.acknowledge();
+			} else {
+				logger.warn("Received null value from Kafka topic. {}", UPDATED_USER_TOPIC);
 			}
-			else {
-				logger.warn("Received null value from Kafka topic. {}",UPDATED_USER_TOPIC);
-			}
-			
+
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 		}
 
 	}
-	
+
 	@KafkaListener(topics = ASSIGN_USER_ROLE_TOPIC)
 	public void assignUserRoleListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -138,14 +136,14 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",ASSIGN_USER_ROLE_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", ASSIGN_USER_ROLE_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
+
 	@KafkaListener(topics = UNASSIGN_USER_ROLE_TOPIC)
 	public void unassignUserRoleListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -153,26 +151,24 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			User user = mapper.readValue(value, User.class);
-
 			logger.info("value : {}", value);
-			logger.info("Consumed message : " + user + " with key : " + key + " from partition : " + partition);
+
 			if (value != null) {
+				User user = userRepository.findByUsername(mapper.readValue(value, User.class).getFirstName()).get();
+				logger.info("Consumed message : " + user + " with key : " + key + " from partition : " + partition);
 				userRepository.save(user);
 				logger.info("User saved to Login database : {}", user);
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",ASSIGN_USER_ROLE_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", ASSIGN_USER_ROLE_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
-	
-	
+
 	@KafkaListener(topics = DELETE_USER_TOPIC)
 	public void deleteUserListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -191,14 +187,13 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",DELETE_USER_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", DELETE_USER_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
 
 	@KafkaListener(topics = NEW_ROLE_TOPIC)
 	public void roleListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
@@ -207,7 +202,7 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			
+
 			Role role = mapper.readValue(value, Role.class);
 			logger.info("Consumed message : " + value + " with key : " + key + " from partition : " + partition);
 			logger.info("role : {}", role);
@@ -216,17 +211,16 @@ public class UserService implements UserDetailsService {
 				logger.info("Role saved to Login database: {}", value);
 
 				ack.acknowledge();
+			} else {
+				logger.warn("Received null value from Kafka topic. {}", NEW_ROLE_TOPIC);
 			}
-			else {
-				logger.warn("Received null value from Kafka topic. {}",NEW_ROLE_TOPIC);
-			}
-			
+
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 		}
 
 	}
-	
+
 	@KafkaListener(topics = UPDATED_ROLE_TOPIC)
 	public void updateRoleListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 		try {
@@ -234,7 +228,7 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			
+
 			Role role = mapper.readValue(value, Role.class);
 			logger.info("Consumed message : " + value + " with key : " + key + " from partition : " + partition);
 			logger.info("Role : {}", role);
@@ -243,17 +237,16 @@ public class UserService implements UserDetailsService {
 				logger.info("Role Updated to Login database: {}", value);
 
 				ack.acknowledge();
+			} else {
+				logger.warn("Received null value from Kafka topic. {}", UPDATED_ROLE_TOPIC);
 			}
-			else {
-				logger.warn("Received null value from Kafka topic. {}",UPDATED_ROLE_TOPIC);
-			}
-			
+
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 		}
 
 	}
-	
+
 	@KafkaListener(topics = ASSIGN_ROLE_PERMISSION_TOPIC)
 	public void assignRolePermissionListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 		try {
@@ -261,7 +254,7 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			
+
 			Role role = mapper.readValue(value, Role.class);
 			logger.info("Consumed message : " + value + " with key : " + key + " from partition : " + partition);
 			logger.info("role : {}", role);
@@ -270,17 +263,16 @@ public class UserService implements UserDetailsService {
 				logger.info("Role updated to Login database: {}", value);
 
 				ack.acknowledge();
+			} else {
+				logger.warn("Received null value from Kafka topic. {}", ASSIGN_ROLE_PERMISSION_TOPIC);
 			}
-			else {
-				logger.warn("Received null value from Kafka topic. {}",ASSIGN_ROLE_PERMISSION_TOPIC);
-			}
-			
+
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 		}
 
 	}
-	
+
 	@KafkaListener(topics = UNASSIGN_ROLE_PERMISSION_TOPIC)
 	public void unassignRolePermissionListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 		try {
@@ -288,7 +280,7 @@ public class UserService implements UserDetailsService {
 			String key = consumerRecord.key();
 			String value = consumerRecord.value();
 			int partition = consumerRecord.partition();
-			
+
 			Role role = mapper.readValue(value, Role.class);
 			logger.info("Consumed message : " + value + " with key : " + key + " from partition : " + partition);
 			logger.info("role : {}", role);
@@ -297,17 +289,16 @@ public class UserService implements UserDetailsService {
 				logger.info("Role updated to Login database: {}", value);
 
 				ack.acknowledge();
+			} else {
+				logger.warn("Received null value from Kafka topic. {}", ASSIGN_ROLE_PERMISSION_TOPIC);
 			}
-			else {
-				logger.warn("Received null value from Kafka topic. {}",ASSIGN_ROLE_PERMISSION_TOPIC);
-			}
-			
+
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 		}
 
 	}
-	
+
 	@KafkaListener(topics = DELETE_ROLE_TOPIC)
 	public void deleteRoleListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -326,16 +317,14 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",DELETE_PERMISSION_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", DELETE_PERMISSION_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
-	
-	
+
 	@KafkaListener(topics = NEW_PERMISSION_TOPIC)
 	public void permissionListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -345,7 +334,7 @@ public class UserService implements UserDetailsService {
 			int partition = consumerRecord.partition();
 
 			Permission permission = mapper.readValue(value, Permission.class);
-			
+
 			logger.info("value : {}", value);
 			logger.info("Consumed message : " + permission + " with key : " + key + " from partition : " + partition);
 			if (value != null) {
@@ -354,14 +343,14 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",NEW_PERMISSION_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", NEW_PERMISSION_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
+
 	@KafkaListener(topics = UPDATED_PERMISSION_TOPIC)
 	public void updatePermissionListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -373,21 +362,22 @@ public class UserService implements UserDetailsService {
 			Permission updatedPermission = mapper.readValue(value, Permission.class);
 
 			logger.info("value : {}", value);
-			logger.info("Consumed message : " + updatedPermission + " with key : " + key + " from partition : " + partition);
+			logger.info("Consumed message : " + updatedPermission + " with key : " + key + " from partition : "
+					+ partition);
 			if (value != null) {
 				permissionRepository.save(updatedPermission);
 				logger.info("Permission updated to Login database : {}", updatedPermission);
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",UPDATED_PERMISSION_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", UPDATED_PERMISSION_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
 			// Handle the exception (e.g., log, retry, or skip)
 		}
 	}
-	
+
 	@KafkaListener(topics = DELETE_PERMISSION_TOPIC)
 	public void deletePermissionListener(ConsumerRecord<String, String> consumerRecord, Acknowledgment ack) {
 
@@ -406,7 +396,7 @@ public class UserService implements UserDetailsService {
 
 				ack.acknowledge();
 			} else {
-				logger.warn("Received null value from Kafka topic. {}",DELETE_PERMISSION_TOPIC);
+				logger.warn("Received null value from Kafka topic. {}", DELETE_PERMISSION_TOPIC);
 			}
 		} catch (Exception e) {
 			logger.error("Error processing Kafka message: {}", e.getMessage());
@@ -453,11 +443,13 @@ public class UserService implements UserDetailsService {
 	@Transactional
 	public UserDto getUserByName(String userName) throws UserNotFoundException {
 		// TODO Auto-generated method stub
-		logger.info("username : {}",userName);
+		logger.info("username : {}", userName);
 		User user = userRepository.findByUsername(userName)
 				.orElseThrow(() -> new UserNotFoundException("User not found with username : {} " + userName));
+		logger.info("Roles For user {} : {}", user.getRoles(), user.getUsername());
 		UserDto userDto = new UserDto(user.getUser_id(), user.getUsername(), user.getEmail(), user.getPasswordHash(),
-				user.getFirstName(),user.getMiddleName(),user.getLastName(),user.getLoggedIn(), user.convertRolesEntityToDto(user.getRoles()));
+				user.getFirstName(), user.getMiddleName(), user.getLastName(), user.getLoggedIn(),
+				user.convertRolesEntityToDto(user.getRoles()));
 		return userDto;
 	}
 

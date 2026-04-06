@@ -179,9 +179,9 @@ public class Role {
 	public Set<PermissionDto> convertPermissionEntityToDto(Set<Permission> permissions) {
 
 		Set<PermissionDto> permissionDtos = new HashSet<>();
-		PermissionDto permissionDto = new PermissionDto();
-
+		
 		for (Permission permission : permissions) {
+			PermissionDto permissionDto = new PermissionDto();
 			permissionDto.setId(permission.getId());
 			permissionDto.setName(permission.getName());
 			permissionDto.setCreatedDttm(permission.getCreatedDttm());

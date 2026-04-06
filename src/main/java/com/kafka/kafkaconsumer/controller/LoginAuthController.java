@@ -27,7 +27,7 @@ import com.pawar.todo.dto.LoginDto;
 import com.pawar.todo.dto.UserDto;
 
 @RestController
-@RequestMapping("/login-service")
+@RequestMapping("/")
 public class LoginAuthController {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginAuthController.class);
@@ -78,6 +78,7 @@ public class LoginAuthController {
 				logger.info("token : {}", token);
 			}
 			DecodedJWT decodedJWT = JWT.decode(token);
+			logger.info("decodedJWT payload : {}",decodedJWT.toString());
 			String decodedSubject = decodedJWT.getSubject();
 			logger.info("Decoded Subject : {}", decodedSubject);
 	        ObjectMapper om = new ObjectMapper();

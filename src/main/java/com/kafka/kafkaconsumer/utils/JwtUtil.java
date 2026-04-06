@@ -88,9 +88,10 @@ public class JwtUtil {
 
 		if (!isTokenAlreadyAvailable) {
 			User user = new User(userDto);
-			String name = user.getFirstName() + " " + user.getMiddleName() + " "
-					+ user.getLastName();
-			String data = name + "|" +user.getRoles() + "|" + user.getUsername();
+			String name = loggerInUser.getFirstName() + " " + loggerInUser.getMiddleName() + " "
+					+ loggerInUser.getLastName();
+			String data = name + "|" +loggerInUser.getRoles() + "|" + loggerInUser.getUsername();
+			logger.info("User data for jwt token : {}",data);
 			token = createToken(claims,data);
 			Date dateOfExpiration = extractClaim(token, claimss -> claimss.getExpiration());
 			Date dateofIssue = extractClaim(token, claimss -> claimss.getIssuedAt());
@@ -147,7 +148,8 @@ public class JwtUtil {
 			return token;
 		}
 
-		logger.info("User is logged in : {}", loggerInUser);
+		logger.info("User is logged in : {}", loggerInUser.getUsername());
+		logger.debug("User is logged in : {}", loggerInUser);
 		logger.info("logged in user : {}", loggerInUser.getLoggedIn());
 		return token;
 	}

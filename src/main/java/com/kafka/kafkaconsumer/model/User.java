@@ -224,8 +224,8 @@ public class User {
 	public Set<RoleDto> convertRolesEntityToDto(Set<Role> roles) {
 
 		Set<RoleDto> roleDtos = new HashSet<>();
-		RoleDto roleDto = new RoleDto();
 		for (Role role : roles) {
+			RoleDto roleDto = new RoleDto();
 			roleDto.setRole_id(role.getRole_id());
 			roleDto.setName(role.getName());
 			roleDto.setPermissions(role.convertPermissionEntityToDto(role.getPermissions()));
