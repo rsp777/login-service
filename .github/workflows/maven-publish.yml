@@ -1,34 +1,150 @@
-# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
-
-name: Maven Package
-
+name: Build and Deploy Artifact to Maven Registry
 on:
-  release:
-    types: [created]
-
+  push:
+    branches: master
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - uses: actions/checkout@v4
+      - name: Remove existing settings.xml
+        run: rm -f $HOME/.m2/settings.xml
+      - name: Setup Maven settings
+        uses: s4u/maven-settings-action@v4.0.0
+        with:
+          override: true
+          servers: |
+            [{"id":"github","username":"${{ secrets.USERNAME }}","password":"${{ secrets.PASSWORD }}"}]
+          repositories: |
+            [{"id":"github","name":"${{ secrets.REPO_NAME }}","url":"${{ secrets.REPO_URL }}","snapshots":{"enabled":true}}]
 
-    # - name: Build with Maven
-    #   run: mvn -B package --file pom.xml
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
 
-    - name: Build and Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+      - name: Maven Build
+        run: mvn clean package -s $HOME/.m2/settings.xml -DskipTests
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-artifact
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 90
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Maven settings
+        uses: s4u/maven-settings-action@v4.0.0
+        with:
+          override: true
+          servers: |
+            [{"id":"github","username":"${{ secrets.USERNAME }}","password":"${{ secrets.PASSWORD }}"}]
+          repositories: |
+            [{"id":"github","name":"${{ secrets.REPO_NAME }}","url":"${{ secrets.REPO_URL }}","snapshots":{"enabled":true}}]
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Run tests
+        run: mvn test
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: write
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Maven settings
+        uses: s4u/maven-settings-action@v4.0.0
+        with:
+          override: true
+          servers: |
+            [{"id":"github","username":"${{ secrets.USERNAME }}","password":"${{ secrets.PASSWORD }}"}]
+          repositories: |
+            [{"id":"github","name":"${{ secrets.REPO_NAME }}","url":"${{ secrets.REPO_URL }}","snapshots":{"enabled":true}}]
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Create and push tag (use pom version if available)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: |
+          set -e
+          git config user.email "$GIT_AUTHOR_EMAIL"
+          git config user.name "$GIT_AUTHOR_NAME"
+
+          # Try to read the version from the Maven project. If that fails, fall back to the run number.
+          VERSION=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version 2>/dev/null || true)
+          if [ -z "$VERSION" ]; then
+            TAG="v${{ github.run_number }}"
+          else
+            # Trim whitespace
+            VERSION=$(echo "$VERSION" | tr -d '\r' | tr -d '\n')
+            TAG="${VERSION}"
+          fi
+
+          echo "Creating tag $TAG for SHA $GITHUB_SHA"
+
+          # Commit the version change
+
+          git add pom.xml
+          git commit -m "Bump version to $VERSION"
+          git push origin HEAD
+
+          # Push the tag (GITHUB_TOKEN provided via persist-credentials)
+          git tag -a "$TAG" -m "Release $TAG ($GITHUB_SHA)"
+          git push origin "$TAG"
+
+          # Create annotated tag if it doesn't already exist
+          # if git rev-parse "$TAG" >/dev/null 2>&1; then
+          #   echo "Tag $TAG already exists locally; skipping creation."
+          # else
+          #   git tag -a "$TAG" -m "Release $TAG ($GITHUB_SHA)"
+          # fi
+
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          # Artifact name
+          name: build-artifact
+          # Destination path
+          path: ./downloaded-artifacts
+
+      - name: Publish to GitHub Packages Apache Maven
+        run: mvn deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
